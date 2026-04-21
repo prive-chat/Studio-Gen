@@ -1,0 +1,6 @@
+{
+  "name": "StudioGen AI",
+  "description": "Professional AI studio for generating high-quality images and video scripts using Gemini and Imagen.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
