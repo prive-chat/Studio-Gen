@@ -14,6 +14,8 @@ import {
   Sandbox, 
   RecentGenerations 
 } from "./components/generator/GeneratorUI";
+import { AuthModal } from "./components/auth/AuthModal";
+import { supabase } from "./lib/supabase";
 
 export default function App() {
   const {
@@ -35,10 +37,12 @@ export default function App() {
     isEnhancing,
     enhancePrompt,
     generate,
-    clear
+    clear,
+    user
   } = useGenerator();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
@@ -55,6 +59,10 @@ export default function App() {
     link.click();
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
   const handleVariation = () => {
     if (!result) return;
     setResult(null);
@@ -68,7 +76,14 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen bg-brand-bg text-slate-100 overflow-hidden select-none font-sans">
-      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      
+      <Navbar 
+        onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
+        user={user}
+        onLoginClick={() => setAuthModalOpen(true)}
+        onLogoutClick={handleLogout}
+      />
 
       <main className="flex flex-1 overflow-hidden relative">
         <Sidebar 

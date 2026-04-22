@@ -1,11 +1,19 @@
 import React from "react";
-import { Menu } from "lucide-react";
+import { Menu, LogOut, Sparkles, User as UserIcon } from "lucide-react";
 
 interface NavbarProps {
   onMenuClick: () => void;
+  user?: any;
+  onLoginClick?: () => void;
+  onLogoutClick?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
+export const Navbar: React.FC<NavbarProps> = ({ 
+  onMenuClick, 
+  user, 
+  onLoginClick, 
+  onLogoutClick 
+}) => {
   return (
     <nav className="h-16 border-b border-white/10 px-4 md:px-6 flex items-center justify-between bg-brand-bg shrink-0 z-50 relative">
       <div className="flex items-center gap-3">
@@ -30,14 +38,33 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
           <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></div>
           <span className="text-[9px] md:text-[10px] uppercase tracking-widest text-slate-400 font-semibold truncate max-w-[100px]">Engine Online</span>
         </div>
-        <div className="hidden lg:flex items-center gap-4 text-[11px] font-bold tracking-wider opacity-70 uppercase">
-          <a href="#" className="hover:text-brand-indigo-light transition-colors">Galeria</a>
-          <a href="#" className="hover:text-brand-indigo-light transition-colors">Modelos</a>
-          <a href="#" className="hover:text-brand-indigo-light transition-colors">Facturacion</a>
-        </div>
-        <div className="w-8 h-8 rounded-full border border-white/20 bg-slate-800 flex items-center justify-center overflow-hidden shrink-0">
-          <img src="https://picsum.photos/seed/user/32/32" alt="Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-        </div>
+        
+        {user ? (
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex flex-col items-end mr-1">
+              <span className="text-[10px] font-bold text-white/90 truncate max-w-[120px]">{user.email}</span>
+              <span className="text-[8px] text-brand-indigo-light uppercase tracking-widest font-black">Cloud Sync Active</span>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-brand-indigo/20 border border-brand-indigo/30 flex items-center justify-center">
+              <UserIcon className="w-4 h-4 text-brand-indigo-light" />
+            </div>
+            <button 
+              onClick={onLogoutClick}
+              className="p-2 hover:bg-white/5 rounded-lg text-slate-500 hover:text-red-400 transition-colors"
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <button 
+            onClick={onLoginClick}
+            className="flex items-center gap-2 px-4 py-1.5 bg-brand-indigo hover:bg-brand-indigo-hover rounded-full text-xs font-bold transition-all shadow-lg shadow-brand-indigo/20"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Sync Cloud</span>
+          </button>
+        )}
       </div>
     </nav>
   );

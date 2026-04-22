@@ -1,5 +1,7 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { AIService } from "../services/ai.service";
+import { DBService } from "../services/db.service";
+import { supabase } from "../lib/supabase";
 import { GenMode, GenResult, AspectRatio, GenStyle } from "../types/generator";
 
 export function useGenerator() {
@@ -13,6 +15,29 @@ export function useGenerator() {
   const [result, setResult] = useState<GenResult | null>(null);
   const [history, setHistory] = useState<GenResult[]>([]);
   const [isEnhancing, setIsEnhancing] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  // Sync with Supabase Auth
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Load history from Supabase
+  useEffect(() => {
+    if (user) {
+      DBService.getGenerations().then(setHistory);
+    } else {
+      setHistory([]);
+    }
+  }, [user]);
 
   const simulateProgress = async (target: number, msg: string, duration = 800) => {
     setStatusMsg(msg);
@@ -74,7 +99,15 @@ export function useGenerator() {
       }
 
       setResult(finalResult);
-      setHistory(prev => [finalResult, ...prev]);
+      
+      // Save to Supabase if logged in
+      if (user) {
+        await DBService.saveGeneration(finalResult);
+        // Refresh history to include new item (already updated locally for speed)
+        setHistory(prev => [finalResult, ...prev]);
+      } else {
+        setHistory(prev => [finalResult, ...prev]);
+      }
     } catch (error) {
       console.error("Hook Error (generate):", error);
       alert("Error en la generación. Por favor, intenta de nuevo.");
@@ -108,6 +141,7 @@ export function useGenerator() {
     isEnhancing,
     enhancePrompt,
     generate,
-    clear
+    clear,
+    user
   };
 }
