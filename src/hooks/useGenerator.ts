@@ -39,6 +39,35 @@ export function useGenerator() {
     }
   }, [user]);
 
+  // Real-time synchronization listener
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = DBService.subscribeToGenerations((payload) => {
+      if (payload.eventType === 'INSERT') {
+        const newItem: GenResult = {
+          type: payload.new.type,
+          url: payload.new.url,
+          prompt: payload.new.prompt,
+          script: payload.new.script
+        };
+        
+        setHistory(prev => {
+          // Check if it already exists to prevent duplication with optimistic updates
+          if (prev.find(item => item.url === newItem.url)) return prev;
+          return [newItem, ...prev];
+        });
+      } else if (payload.eventType === 'DELETE') {
+        // Handle deletions if needed
+        DBService.getGenerations().then(setHistory);
+      }
+    });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
   const simulateProgress = async (target: number, msg: string, duration = 800) => {
     setStatusMsg(msg);
     const steps = 15;
