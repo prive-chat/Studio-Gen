@@ -6,7 +6,10 @@ export class AIService {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt }),
       });
-      if (!response.ok) throw new Error("Enhance API failed");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Enhance API failed");
+      }
       const data = await response.json();
       return data.text || prompt;
     } catch (error) {
@@ -22,7 +25,10 @@ export class AIService {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt }),
       });
-      if (!response.ok) throw new Error("Script API failed");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Script API failed");
+      }
       const data = await response.json();
       return data.text || "No se pudo generar el guión.";
     } catch (error) {
@@ -38,7 +44,10 @@ export class AIService {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt, aspectRatio, style }),
       });
-      if (!response.ok) throw new Error("Generate API failed");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Generate API failed");
+      }
       const data = await response.json();
       return data.image;
     } catch (error) {

@@ -32,17 +32,20 @@ app.post("/api/enhance", async (req, res) => {
     const ai = getAI();
     // @ts-ignore
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      model: "gemini-2.0-flash", // Using a stable model name
+      contents: prompt,
       config: {
         systemInstruction: "Eres un experto en prompts de ingeniería para IA generativa. Tu tarea es recibir una idea simple y convertirla en un prompt descriptivo, artístico y cinematográfico en español que maximice la calidad visual. Responde ÚNICAMENTE con el prompt mejorado, sin introducciones ni etiquetas.",
       }
     });
 
-    res.json({ text: response.text?.trim() });
+    if (!response.text) {
+      throw new Error("No text returned from AI");
+    }
+    res.json({ text: response.text.trim() });
   } catch (error: any) {
     console.error("API Enhance Error:", error.message);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message || "Internal AI Error" });
   }
 });
 
@@ -52,13 +55,13 @@ app.post("/api/script", async (req, res) => {
     const ai = getAI();
     // @ts-ignore
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: [{ role: "user", parts: [{ text: `Crea un guión cinematográfico corto de 3 escenas basado en este prompt: "${prompt}". Enfócate en descripciones visuales intensas. Responde brevemente.` }] }]
+      model: "gemini-2.0-flash",
+      contents: `Crea un guión cinematográfico corto de 3 escenas basado en este prompt: "${prompt}". Enfócate en descripciones visuales intensas. Responde brevemente.`
     });
     res.json({ text: response.text });
   } catch (error: any) {
     console.error("API Script Error:", error.message);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message || "Internal AI Error" });
   }
 });
 
@@ -82,7 +85,7 @@ app.post("/api/generate", async (req, res) => {
     // @ts-ignore
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-image",
-      contents: [{ role: "user", parts: [{ text: finalPrompt }] }],
+      contents: finalPrompt,
       config: {
         imageConfig: {
           aspectRatio: aspectRatio || "16:9",
@@ -90,11 +93,15 @@ app.post("/api/generate", async (req, res) => {
       }
     });
 
-    const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+    // Find the image part as per skill guidelines
+    // @ts-ignore
+    const parts = response.candidates?.[0]?.content?.parts || [];
+    const imagePart = parts.find((p: any) => p.inlineData);
     
-    if (part?.inlineData) {
-      res.json({ image: `data:image/png;base64,${part.inlineData.data}` });
+    if (imagePart?.inlineData?.data) {
+      res.json({ image: `data:image/png;base64,${imagePart.inlineData.data}` });
     } else {
+      console.error("No image data in response parts:", parts);
       throw new Error("No image data generated");
     }
   } catch (error: any) {
