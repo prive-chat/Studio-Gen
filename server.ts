@@ -13,10 +13,18 @@ const PORT = 3000;
 let aiClient: GoogleGenAI | null = null;
 const getAI = () => {
   if (!aiClient) {
-    const key = process.env.GEMINI_API_KEY;
+    const key = process.env.GEMINI_API_KEY || 
+                process.env.GOOGLE_API_KEY || 
+                process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    
     if (!key) {
-      throw new Error("GEMINI_API_KEY is required in environment variables.");
+      throw new Error("API Key NOT found. Please go to 'Settings' (top right) -> 'Secrets' and add 'GEMINI_API_KEY' with your valid API key from Google AI Studio.");
     }
+
+    if (key === "MY_GEMINI_API_KEY" || key.trim() === "") {
+      throw new Error("The API Key is empty or uses a placeholder. Please update 'GEMINI_API_KEY' in the Secrets panel.");
+    }
+
     aiClient = new GoogleGenAI({ apiKey: key });
   }
   return aiClient;
@@ -32,7 +40,7 @@ app.post("/api/enhance", async (req, res) => {
     const ai = getAI();
     // @ts-ignore
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash", // Using a stable model name
+      model: "gemini-3-flash-preview", 
       contents: prompt,
       config: {
         systemInstruction: "Eres un experto en prompts de ingeniería para IA generativa. Tu tarea es recibir una idea simple y convertirla en un prompt descriptivo, artístico y cinematográfico en español que maximice la calidad visual. Responde ÚNICAMENTE con el prompt mejorado, sin introducciones ni etiquetas.",
@@ -55,7 +63,7 @@ app.post("/api/script", async (req, res) => {
     const ai = getAI();
     // @ts-ignore
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-3-flash-preview",
       contents: `Crea un guión cinematográfico corto de 3 escenas basado en este prompt: "${prompt}". Enfócate en descripciones visuales intensas. Responde brevemente.`
     });
     res.json({ text: response.text });
@@ -130,6 +138,7 @@ async function startServer() {
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running at http://localhost:${PORT}`);
     console.log(`Mode: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`API Key present: ${!!(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY)}`);
   });
 }
 
