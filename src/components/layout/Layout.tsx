@@ -1,24 +1,16 @@
 import React from "react";
 import { Menu, LogOut, Sparkles, User as UserIcon } from "lucide-react";
+import { useStore } from "../../store/useStore";
+import { supabase } from "../../lib/supabase";
 
-interface NavbarProps {
-  onMenuClick: () => void;
-  user?: any;
-  onLoginClick?: () => void;
-  onLogoutClick?: () => void;
-}
+export const Navbar: React.FC = () => {
+  const { user, setSidebarOpen, sidebarOpen, setAuthModalOpen } = useStore();
 
-export const Navbar: React.FC<NavbarProps> = ({ 
-  onMenuClick, 
-  user, 
-  onLoginClick, 
-  onLogoutClick 
-}) => {
   return (
     <nav className="h-16 border-b border-white/10 px-4 md:px-6 flex items-center justify-between bg-brand-bg shrink-0 z-50 relative">
       <div className="flex items-center gap-3">
         <button 
-          onClick={onMenuClick}
+          onClick={() => setSidebarOpen(!sidebarOpen)}
           className="lg:hidden p-2 -ml-2 text-slate-400 hover:text-white transition-colors"
         >
           <Menu className="w-5 h-5" />
@@ -49,7 +41,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <UserIcon className="w-4 h-4 text-brand-indigo-light" />
             </div>
             <button 
-              onClick={onLogoutClick}
+              onClick={() => supabase.auth.signOut()}
               className="p-2 hover:bg-white/5 rounded-lg text-slate-500 hover:text-red-400 transition-colors"
               title="Sign Out"
             >
@@ -58,7 +50,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         ) : (
           <button 
-            onClick={onLoginClick}
+            onClick={() => setAuthModalOpen(true)}
             className="flex items-center gap-2 px-4 py-1.5 bg-brand-indigo hover:bg-brand-indigo-hover rounded-full text-xs font-bold transition-all shadow-lg shadow-brand-indigo/20"
           >
             <Sparkles className="w-3.5 h-3.5" />
@@ -72,11 +64,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="h-10 border-t border-white/10 bg-brand-bg flex items-center justify-between px-4 md:px-6 shrink-0 z-50 relative">
-      <div className="text-[8px] md:text-[9px] text-slate-500 tracking-[0.1em] md:tracking-[0.2em] uppercase font-bold truncate mr-4">
-        StudioGen v4.2.0-Alpha · <span className="hidden sm:inline text-slate-600">US-WEST-2</span>
+    <footer className="h-10 border-t border-white/10 bg-brand-bg flex items-center justify-between px-4 md:px-6 shrink-0 z-50 relative text-slate-500">
+      <div className="text-[8px] md:text-[9px] tracking-[0.2em] uppercase font-bold truncate mr-4">
+        StudioGen v4.2.0-Alpha · <span className="hidden sm:inline">US-WEST-2</span>
       </div>
-      <div className="flex gap-4 md:gap-6 text-[8px] md:text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none shrink-0">
+      <div className="flex gap-4 md:gap-6 text-[8px] md:text-[9px] font-bold uppercase tracking-widest leading-none shrink-0">
         <span className="flex items-center gap-1.5"><div className="w-1 h-1 md:w-1.5 md:h-1.5 bg-emerald-500 rounded-full"></div> CPU: 12%</span>
         <span className="flex items-center gap-1.5"><div className="w-1 h-1 md:w-1.5 md:h-1.5 bg-amber-500 rounded-full"></div> GPU: 89%</span>
         <span className="hidden sm:inline text-brand-indigo-light">LATENCY: 14MS</span>
