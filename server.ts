@@ -15,17 +15,14 @@ const getAI = () => {
   if (!aiClient) {
     const key = process.env.GEMINI_API_KEY || 
                 process.env.GOOGLE_API_KEY || 
-                process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+                process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
+                process.env.VITE_GEMINI_API_KEY;
     
-    if (!key) {
-      throw new Error("API Key NOT found. Please go to 'Settings' (top right) -> 'Secrets' and add 'GEMINI_API_KEY' with your valid API key from Google AI Studio.");
+    if (!key || key.trim() === "") {
+      throw new Error("GEMINI_API_KEY is not set. Please ensure you have added a Secret named 'GEMINI_API_KEY' with your API key and clicked 'Apply changes' in the Settings -> Secrets panel.");
     }
 
-    if (key === "MY_GEMINI_API_KEY" || key.trim() === "") {
-      throw new Error("The API Key is empty or uses a placeholder. Please update 'GEMINI_API_KEY' in the Secrets panel.");
-    }
-
-    aiClient = new GoogleGenAI({ apiKey: key });
+    aiClient = new GoogleGenAI({ apiKey: key.trim() });
   }
   return aiClient;
 };
